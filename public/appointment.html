@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Appointment Booking - Personal Clinic</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .input-field:focus {
+      box-shadow: 0 0 8px #667eea;
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .time-slot {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      user-select: none;
+    }
+
+    .time-slot:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .time-slot.selected {
+      background: #4c51bf;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 0 10px #4c51bf;
+    }
+  </style>
+</head>
+
+<body class="text-white flex items-center justify-center p-6">
+  <div class="max-w-xl w-full glass-card p-8">
+    <h1 class="text-3xl font-bold mb-6 text-center">
+      <i class="fas fa-calendar-check mr-2"></i>Book Your Appointment
+    </h1>
+    <form id="booking-form" class="space-y-6">
+      <div>
+        <label for="full-name" class="block mb-1 font-semibold">
+          <i class="fas fa-user mr-1"></i> Full Name <span class="text-red-500">*</span>
+        </label>
+        <input type="text" id="full-name" class="input-field w-full p-3 rounded-md text-gray-900" placeholder="Your full name" required />
+      </div>
+
+      <div>
+        <label for="email" class="block mb-1 font-semibold">
+          <i class="fas fa-envelope mr-1"></i> Email <span class="text-red-500">*</span>
+        </label>
+        <input type="email" id="email" class="input-field w-full p-3 rounded-md text-gray-900" placeholder="you@example.com" required />
+      </div>
+
+      <div>
+        <label for="phone" class="block mb-1 font-semibold">
+          <i class="fas fa-phone mr-1"></i> Phone Number
+        </label>
+        <input type="tel" id="phone" pattern="[0-9+\s()-]{7,}" title="Please enter a valid phone number" class="input-field w-full p-3 rounded-md text-gray-900" placeholder="(123) 456-7890" />
+      </div>
+
+      <div>
+        <label for="doctor" class="block mb-1 font-semibold">
+          <i class="fas fa-user-md mr-1"></i> Select Doctor <span class="text-red-500">*</span>
+        </label>
+        <select id="doctor" class="input-field w-full p-3 rounded-md text-gray-900" required>
+          <option value="Follow-up">Follow-up</option>
+          <option value="Initial consultation">initial consultation</option>
+          <option value="Routine checkup">Routine checkup</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="appointment-date" class="block mb-1 font-semibold">
+          <i class="fas fa-calendar-alt mr-1"></i> Preferred Date <span class="text-red-500">*</span>
+        </label>
+        <input type="date" id="appointment-date" class="input-field w-full p-3 rounded-md text-gray-900" required min="" />
+      </div>
+
+      <div>
+        <label class="block mb-2 font-semibold">
+          <i class="fas fa-clock mr-1"></i> Available Time Slots <span class="text-red-500">*</span>
+        </label>
+        <div id="time-slots" class="grid grid-cols-3 gap-3"></div>
+      </div>
+
+      <div>
+        <label for="reason" class="block mb-1 font-semibold">
+          <i class="fas fa-comment mr-1"></i> Reason for Visit
+        </label>
+        <textarea id="reason" rows="4" class="input-field w-full p-3 rounded-md text-gray-900" placeholder="Describe your symptoms or reason for the appointment"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 transition rounded-md py-3 font-semibold flex justify-center items-center gap-2">
+        <i class="fas fa-paper-plane"></i> Book Appointment
+      </button>
+    </form>
+
+    <div id="confirmation" class="mt-8 hidden text-center">
+      <h2 class="text-2xl font-bold mb-4 text-green-400">
+        <i class="fas fa-check-circle"></i> Booking Confirmed!
+      </h2>
+      <div id="confirmation-details" class="text-white text-left max-w-md mx-auto"></div>
+      <button onclick="resetForm()" class="mt-6 bg-gray-700 hover:bg-gray-800 rounded-md py-2 px-6 font-semibold">
+        Book Another
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const availableTimes = [
+      '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
+      '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM',
+      '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM'
+    ];
+
+    const timeSlotsDiv = document.getElementById('time-slots');
+    const bookingForm = document.getElementById('booking-form');
+    const confirmationDiv = document.getElementById('confirmation');
+    const confirmationDetails = document.getElementById('confirmation-details');
+    let selectedTime = null;
+
+    // Set min date to today
+    const dateInput = document.getElementById('appointment-date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+
+    function generateTimeSlots() {
+      timeSlotsDiv.innerHTML = '';
+      availableTimes.forEach(time => {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.setAttribute('role', 'button');
+        slot.setAttribute('tabindex', '0');
+        slot.setAttribute('aria-label', `Time slot ${time}`);
+        slot.textContent = time;
+        slot.addEventListener('click', () => selectTime(slot, time));
+        timeSlotsDiv.appendChild(slot);
+      });
+    }
+
+    function selectTime(element, time) {
+      document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedTime = time;
+      timeSlotsDiv.classList.remove('ring', 'ring-red-400');
+    }
+
+    function resetForm() {
+      bookingForm.reset();
+      selectedTime = null;
+      confirmationDiv.classList.add('hidden');
+      bookingForm.classList.remove('hidden');
+      generateTimeSlots();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    bookingForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      if (!selectedTime) {
+        timeSlotsDiv.classList.add('ring', 'ring-red-400');
+        alert('Please select a time slot.');
+        return;
+      }
+
+      const fullName = document.getElementById('full-name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim() || 'N/A';
+      const doctor = document.getElementById('doctor').value;
+      const date = document.getElementById('appointment-date').value;
+      const reason = document.getElementById('reason').value.trim() || 'N/A';
+
+      const bookingData = { fullName, email, phone, doctor, date, time: selectedTime, reason };
+
+      fetch('/book_appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            alert(`Error: ${data.error}`);
+            return;
+          }
+
+          confirmationDetails.innerHTML = `
+            <p><strong>Name:</strong> ${fullName}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Doctor:</strong> ${doctor}</p>
+            <p><strong>Date:</strong> ${new Date(date).toDateString()}</p>
+            <p><strong>Time:</strong> ${selectedTime}</p>
+            <p><strong>Reason:</strong> ${reason}</p>
+            <p class="mt-4 text-indigo-300"><i class="fas fa-envelope"></i> A confirmation email has been sent to ${email}.</p>
+          `;
+
+          bookingForm.classList.add('hidden');
+          confirmationDiv.classList.remove('hidden');
+          confirmationDiv.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+          console.error('Booking error:', error);
+          alert('An error occurred while booking the appointment. Please try again later.');
+        });
+    });
+
+    // Initialize
+    generateTimeSlots();
+  </script>
+</body>
+
+</html>

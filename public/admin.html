@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homeo Ease Admin Panel</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #64748b;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 250px;
+      --header-height: 70px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--dark);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #334155;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      user-select: none;
+    }
+
+    .nav-links {
+      flex-grow: 1;
+      padding: 20px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background-color: #334155;
+      color: white;
+    }
+
+    .nav-item i {
+      margin-right: 10px;
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: var(--dark);
+      font-weight: 600;
+      font-size: 1.1rem;
+      user-select: none;
+    }
+
+    .profile-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 180px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      user-select: none;
+    }
+
+    .stat div {
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat h2 {
+      margin: 0;
+      font-size: 2.5rem;
+      color: var(--primary);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 20px;
+      user-select: none;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      font-weight: 700;
+      color: var(--secondary);
+      transition: color 0.3s, border-color 0.3s;
+    }
+
+    .tab.active {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Tables */
+    table {
+      width: 90%;
+      margin: 0 auto 40px;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+      display: inline-block;
+      user-select: none;
+    }
+
+    .status.confirmed {
+      background: var(--success);
+    }
+
+    .status.pending {
+      background: var(--warning);
+    }
+
+    .status.cancelled {
+      background: var(--danger);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 70px;
+      }
+      .sidebar .logo,
+      .sidebar .nav-item span {
+        display: none;
+      }
+      .main-content {
+        margin-left: 70px;
+      }
+      .nav-item {
+        justify-content: center;
+        padding: 15px;
+      }
+      .nav-item i {
+        margin-right: 0;
+        font-size: 20px;
+      }
+      .stats {
+        justify-content: space-around;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      table {
+        width: 100%;
+      }
+      .stats {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">Homeo Ease</div>
+    <div class="nav-links">
+      <div class="nav-item active" id="nav-dashboard">
+        <i class="fas fa-home"></i><span>Dashboard</span>
+      </div>
+      <div class="nav-item" id="nav-patients">
+        <i class="fas fa-user-injured"></i><span>Patients</span>
+      </div>
+      <div class="nav-item" id="nav-appointments">
+        <i class="fas fa-calendar-check"></i><span>Appointments</span>
+      </div>
+      <div class="nav-item" id="nav-doctors">
+        <i class="fas fa-user-md"></i><span>Doctors</span>
+      </div>
+      <div class="nav-item" id="nav-settings">
+        <i class="fas fa-cog"></i><span>Settings</span>
+      </div>
+      <div class="nav-item" id="nav-logout">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <i class="fas fa-user-circle profile-icon"></i>
+        <div class="doctor-name">Dr. Priya Gore</div>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="stat">
+        <div>Total Patients</div>
+        <h2 id="total-patients">0</h2>
+      </div>
+      <div class="stat">
+        <div>Total Appointments</div>
+        <h2 id="total-appointments">0</h2>
+      </div>
+      <div class="stat">
+        <div>Pending Appointments</div>
+        <h2 id="pending-appointments">0</h2>
+      </div>
+    </section>
+
+    <section class="tabs">
+      <div class="tab active" id="patients-tab">Patients</div>
+      <div class="tab" id="appointments-tab">Appointments</div>
+    </section>
+
+    <section>
+      <table id="patients-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Gender</th>
+            <th>Registered At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Patients data will be inserted here -->
+        </tbody>
+      </table>
+
+      <table id="appointments-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Patient Name</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Reason</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Appointments data will be inserted here -->
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const patientsTab = document.getElementById("patients-tab");
+    const appointmentsTab = document.getElementById("appointments-tab");
+    const patientsTable = document.getElementById("patients-table");
+    const appointmentsTable = document.getElementById("appointments-table");
+
+    // Sidebar nav items
+    const navDashboard = document.getElementById("nav-dashboard");
+    const navPatients = document.getElementById("nav-patients");
+    const navAppointments = document.getElementById("nav-appointments");
+
+    // Tab switching
+    function showPatients() {
+      patientsTab.classList.add("active");
+      appointmentsTab.classList.remove("active");
+      patientsTable.style.display = "";
+      appointmentsTable.style.display = "none";
+
+      navPatients.classList.add("active");
+      navAppointments.classList.remove("active");
+      navDashboard.classList.remove("active");
+    }
+
+    function showAppointments() {
+      appointmentsTab.classList.add("active");
+      patientsTab.classList.remove("active");
+      appointmentsTable.style.display = "";
+      patientsTable.style.display = "none";
+
+      navAppointments.classList.add("active");
+      navPatients.classList.remove("active");
+      navDashboard.classList.remove("active");
+    }
+
+    patientsTab.addEventListener("click", showPatients);
+    appointmentsTab.addEventListener("click", showAppointments);
+
+    navPatients.addEventListener("click", showPatients);
+    navAppointments.addEventListener("click", showAppointments);
+    navDashboard.addEventListener("click", () => {
+      // Show dashboard stats and patients by default
+      showPatients();
+    });
+
+    async function fetchPatients() {
+      try {
+        const res = await fetch("/api/patients");
+        if (!res.ok) throw new Error("Failed to fetch patients");
+        const patients = await res.json();
+        return patients;
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    }
+
+    async function fetchAppointments() {
+      try {
+        const res = await fetch("/api/appointments");
+        if (!res.ok) throw new Error("Failed to fetch appointments");
+        const appointments = await res.json();
+        return appointments;
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    }
+
+    function renderPatients(patients) {
+      const tbody = patientsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+      patients.forEach((p, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${p.name}</td>
+          <td>${p.email}</td>
+          <td>${p.phone || "N/A"}</td>
+          <td>${p.gender || "N/A"}</td>
+          <td>${new Date(p.registeredAt).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById("total-patients").textContent = patients.length;
+    }
+
+    function renderAppointments(appointments) {
+      const tbody = appointmentsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+      let pendingCount = 0;
+      appointments.forEach((a, i) => {
+        const status = (a.status || "Pending").toLowerCase();
+        if (status === "pending") pendingCount++;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${a.fullName}</td>
+          <td>${a.doctor}</td>
+          <td>${new Date(a.date).toLocaleDateString()}</td>
+          <td>${a.time}</td>
+          <td>${a.reason || "N/A"}</td>
+          <td><span class="status ${status}">${a.status || "Pending"}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById("total-appointments").textContent = appointments.length;
+      document.getElementById("pending-appointments").textContent = pendingCount;
+    }
+
+    async function loadData() {
+      const [patients, appointments] = await Promise.all([
+        fetchPatients(),
+        fetchAppointments(),
+      ]);
+      renderPatients(patients);
+      renderAppointments(appointments);
+    }
+
+    // Initial load
+    loadData();
+
+    // Optional: refresh data every 30 seconds
+    // setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
